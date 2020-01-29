@@ -11,113 +11,170 @@ namespace DLL
 
         public int Count { get; private set; }
 
+        public bool IsEmpty => Head == null;
+
         public DoublyLinkedList()
         {
             Head = null;
             Tail = null;
             Count = 0;
         }
- 
+
         public void AddFirst(T value)
         {
-            if(Head == null)
+            DoublyLinkedListNode<T> temp = new DoublyLinkedListNode<T>(value, owningList: this);
+
+            if (Head == null)
             {
-                Head = new DoublyLinkedListNode<T>(value);
-                Tail = Head;
-                Count++;
+                Tail = temp;
             }
             else
             {
-                DoublyLinkedListNode<T> temp = new DoublyLinkedListNode<T>(value);
                 temp.NextNode = Head;
                 Head.PreviousNode = temp;
-                Head = temp;
-                Count++;
             }
 
+            Head = temp;
+            Count++;
         }
         public void AddLast(T value)
         {
-            if(Head == null)
+            DoublyLinkedListNode<T> nodeToAdd = new DoublyLinkedListNode<T>(value, owningList: this);
+
+            if (Head == null)
             {
-                Head = new DoublyLinkedListNode<T>(value);
-                Tail = Head;
-                Count++;
+                Head = nodeToAdd;
             }
             else
             {
-                DoublyLinkedListNode<T> nodeToAdd = new DoublyLinkedListNode<T>(value);
                 Tail.NextNode = nodeToAdd;
                 nodeToAdd.PreviousNode = Tail;
-                Tail = nodeToAdd;
-                Count++;
             }
+
+            Tail = nodeToAdd;
+            Count++;
         }
 
         public void AddBefore(DoublyLinkedListNode<T> nodeToAddBefore, T value)
         {
-            if (Head != null)
+
+            if (nodeToAddBefore.OwningList != this)
             {
-                DoublyLinkedListNode<T> tempNode = Head;
-                while (tempNode != nodeToAddBefore)
-                {
-                    tempNode = tempNode.NextNode;
-                }
-                DoublyLinkedListNode<T> nodeToAdd = new DoublyLinkedListNode<T>(value);
-                nodeToAdd.NextNode = tempNode;
-                tempNode.PreviousNode.NextNode = nodeToAdd;
-                nodeToAdd.PreviousNode = tempNode.PreviousNode;
-                tempNode.PreviousNode = nodeToAdd;
-                Count++;
+                throw new Exception("Not my node!");
             }
-            else
+            if (Head == null)
             {
-                AddFirst(value);
+                throw new Exception("List is empty.");
             }
+
+
+            DoublyLinkedListNode<T> nodeToAdd = new DoublyLinkedListNode<T>(value, owningList: this);
+            nodeToAddBefore.PreviousNode.NextNode = nodeToAdd;
+            nodeToAdd.NextNode = nodeToAddBefore;
+            nodeToAdd.PreviousNode = nodeToAddBefore.PreviousNode;
+            nodeToAddBefore.PreviousNode = nodeToAdd;
+           
+            Count++;
+
         }
 
         public void AddAfer(DoublyLinkedListNode<T> nodeToAddAfter, T value)
         {
-            if (Head != null)
+            if (nodeToAddAfter.OwningList != this)
             {
-                DoublyLinkedListNode<T> tempNode = Head;
-                while (tempNode != nodeToAddAfter)
-                {
-                    tempNode = tempNode.NextNode;
-                }
-                DoublyLinkedListNode<T> nodeToAdd = new DoublyLinkedListNode<T>(value);
-                nodeToAdd.NextNode = tempNode.NextNode;
-                nodeToAdd.PreviousNode = tempNode;
-                tempNode.NextNode.PreviousNode = nodeToAdd;
-                tempNode.NextNode = nodeToAdd;
-                Count++;
-            }
-            else if(Head == null)
-            {
-                return; //need to add exception.
-            }
-            else
-            {
-                AddLast(value);
+                throw new Exception("Not my node!");
             }
 
+            if (Head == null)
+            {
+                throw new Exception("List is empty");
+            }
+
+
+            DoublyLinkedListNode<T> nodeToAdd = new DoublyLinkedListNode<T>(value, owningList: this);
+            nodeToAdd.NextNode = nodeToAddAfter.NextNode;
+            nodeToAdd.PreviousNode = nodeToAddAfter;
+            nodeToAddAfter.NextNode.PreviousNode = nodeToAdd;
+            nodeToAddAfter.NextNode = nodeToAdd;
+
+            Count++;
         }
+
 
         public DoublyLinkedListNode<T> Search(T value)
         {
-            DoublyLinkedListNode<T> temp = Head;
-            while (temp.NextNode != null)
-            {  
-                if(temp.Value.Equals(value))
+            DoublyLinkedListNode<T> currentNode = Head;
+            while (currentNode != null)
+            {
+                if (currentNode.Value.Equals(value))
                 {
-                    return temp;
+                    return currentNode;
                 }
-                temp = temp.NextNode;
-              
+                currentNode = currentNode.NextNode;
+
             }
             return null;
-            
+
         }
 
+        public bool RemoveFirst()
+        {
+            if (Head == null)
+            {
+                return false;
+            }
+
+            Head = Head.NextNode;
+            Head.PreviousNode = null;
+            Count--;
+            return true;
+
+        }
+
+        public bool RemoveLast()
+        {
+            if (Head == null)
+            {
+                return false;
+            }
+
+            Tail = Tail.PreviousNode;
+            Tail.NextNode = null;
+            Count--;
+            return true;
+        }
+
+        //needs to be checked.
+        public bool Remove(T value)
+        {
+            if (Search(value) == null)
+            {
+                return false;
+            }
+
+            DoublyLinkedListNode<T> nodeToRemove = Search(value);
+            if(nodeToRemove.NextNode == null)
+            {
+                nodeToRemove.PreviousNode.NextNode = null;
+                Count--;
+
+                return true;
+            }
+            if(nodeToRemove.PreviousNode == null)
+            {
+                nodeToRemove.NextNode.PreviousNode = null;
+                Head = nodeToRemove.NextNode;
+                
+                Count--;
+                return true;
+            }
+
+            nodeToRemove.NextNode.PreviousNode = nodeToRemove.PreviousNode;
+            nodeToRemove.PreviousNode.NextNode = nodeToRemove.NextNode;
+
+            Count--;
+            return true;
+
+        }
     }
 }
